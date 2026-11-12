@@ -615,9 +615,8 @@ fn color_choice(chosen: &str) -> El {
             .rounded(px(R_ROW))
             .border_color(if on { p().ink } else { theme::Color::TRANSPARENT })
             .child(project_mark(Some(c), 16.0));
-        if !on {
-            b = b.hover(move |s| s.border_color(strong));
-        }
+        // Empty on the chosen one, so GPUI keeps tracking the pointer (see `screens::titlebar::tabs`).
+        b = b.hover(move |s| if on { s } else { s.border_color(strong) });
         r = r.child(with_tip(b, t(&color_key(c))));
     }
     r.into_any_element()

@@ -113,10 +113,11 @@ fn option(chosen: bool, enabled: bool, name: String, status: Option<String>, on:
         .rounded(px(R_ROW))
         .child(words)
         .child(check);
-    // The chosen row has the sliding pill under it already.
-    if enabled && !chosen {
+    // The chosen row has the sliding pill under it already, so its hover is empty, but it has one
+    // so GPUI keeps tracking the pointer over it (see `screens::titlebar::tabs`).
+    if enabled {
         let hover = theme::wash();
-        b = b.hover(move |s| s.bg(hover));
+        b = b.hover(move |s| if chosen { s } else { s.bg(hover) });
     }
     b.into_any_element()
 }

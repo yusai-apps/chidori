@@ -340,9 +340,9 @@ fn model_step(app: &App) -> El {
                 .w_full()
                 .p(g(2.0))
                 .child(content);
-        if !on {
-            card = card.hover(move |s| s.border_color(strong));
-        }
+        // A hover on the chosen card too, empty, so GPUI keeps tracking the pointer over it (see
+        // `screens::titlebar::tabs`).
+        card = card.hover(move |s| if on { s } else { s.border_color(strong) });
         cards = cards.child(card);
     }
     cards.into_any_element()
