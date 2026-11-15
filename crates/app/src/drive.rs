@@ -492,7 +492,7 @@ fn x11_shot(window: &Window) -> Result<image::RgbaImage, String> {
     }
     // Little-endian 24/32-bit TrueColor, as Xvfb and every desktop serve it: B, G, R, pad.
     let mut rgba = Vec::with_capacity(w as usize * h as usize * 4);
-    for px in reply.data.chunks_exact(4) {
+    for px in reply.data.as_chunks::<4>().0 {
         rgba.extend_from_slice(&[px[2], px[1], px[0], 255]);
     }
     image::RgbaImage::from_raw(w.into(), h.into(), rgba).ok_or_else(|| "X11 GetImage: short image".into())
