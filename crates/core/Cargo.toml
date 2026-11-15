@@ -42,6 +42,8 @@ chrono = { version = "0.4.45", features = ["serde"] }
 ulid = "=3.0.0"
 unicode-normalization = "0.1.25"
 base64 = "0.23.1"
+# Physical cores for Whisper's threads and RAM for the recommended model, on every OS.
+sysinfo = { version = "0.39.6", default-features = false, features = ["system"] }
 image = { version = "0.25.10", default-features = false, features = ["png", "jpeg"] }
 tokio = { version = "1.53.1", features = ["fs", "io-util", "time", "sync", "macros", "rt-multi-thread"] }
 futures-util = "0.3"
@@ -60,7 +62,6 @@ earshot = "=1.2.2"
 
 [target.'cfg(any(windows, target_os = "macos"))'.dependencies]
 xcap = "=0.9.8"
-sysinfo = { version = "0.39.6", default-features = false, features = ["system"] }
 
 # Mic and system audio on macOS (system audio through a Core Audio process tap, macOS 14.6+).
 [target.'cfg(target_os = "macos")'.dependencies]

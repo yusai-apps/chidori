@@ -17,7 +17,7 @@ gpu-cuda = ["chidori-core/gpu-cuda"]
 gpu-metal = ["chidori-core/gpu-metal"]
 # Test builds only: the app takes its input from a command file and draws its window to PNG
 # (docs/DRIVE.md). Never in a release.
-drive = ["dep:gpui-pre-platform"]
+drive = ["dep:gpui-pre-platform", "dep:x11rb"]
 
 [dependencies]
 chidori-core = { path = "../core" }
@@ -78,6 +78,11 @@ objc2-app-kit = { version = "0.3.2", default-features = false, features = [
   "NSView",
   "NSWindow",
 ] }
+
+# Only for `drive`'s screenshots on Linux, where GPUI has no `render_to_image`: the X11 client
+# GPUI's Linux backend already uses.
+[target.'cfg(target_os = "linux")'.dependencies]
+x11rb = { version = "0.13.2", optional = true }
 
 [build-dependencies]
 winresource = "0.1.34"

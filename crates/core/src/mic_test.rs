@@ -23,7 +23,6 @@ pub struct MicTestResult {
     pub device: Option<String>,
 }
 
-#[cfg(any(windows, target_os = "macos"))]
 pub fn run(app: &AppHandle, st: &AppState, seconds: u64) -> AppResult<MicTestResult> {
     use crate::audio::source::{CaptureError, CaptureTarget};
     if !matches!(&*st.recorder.lock(), crate::recorder::Phase::Idle) {
@@ -120,7 +119,6 @@ pub fn speech_only(samples: &[f32]) -> Vec<f32> {
     out
 }
 
-#[cfg(any(windows, target_os = "macos"))]
 fn emit_level(app: &AppHandle, dbfs: f32) {
     events::emit(app, events::Event::Levels(vec![(SourceId::Mic, (dbfs * 10.0).round() / 10.0)]));
 }

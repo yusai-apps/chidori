@@ -58,10 +58,12 @@ pub fn on() -> bool {
 }
 
 /// Whether the window shows: always, unless driven, when only `--drive-visible` shows it (without
-/// taking the focus), for watching a run.
+/// taking the focus), for watching a run. On Linux a driven window always shows: X draws nothing
+/// for a hidden one, so `shot` reads the shown window back (`x11_shot`). Runs on CI and in the
+/// cloud put it on a virtual display (Xvfb), where nobody sees it.
 pub fn visible() -> bool {
     static VISIBLE: OnceLock<bool> = OnceLock::new();
-    *VISIBLE.get_or_init(|| !on() || flag("--drive-visible"))
+    *VISIBLE.get_or_init(|| !on() || flag("--drive-visible") || cfg!(target_os = "linux"))
 }
 
 /// The profile was made by this run, so it has yet to be set up.
@@ -291,7 +293,11 @@ fn act(name: &str, cmd: &Value, window: &mut Window, cx: &mut Cx) -> Result<Valu
     match name {
         "shot" => {
             draw(window, cx);
+            #[cfg(not(target_os = "linux"))]
             let image = window.render_to_image().map_err(|e| format!("{e:#}"))?;
+            // GPUI draws to an image only on Windows and macOS.
+            #[cfg(target_os = "linux")]
+            let image = x11_shot(window)?;
             let file = dir.join(cmd["file"].as_str().unwrap_or("shot.png"));
             image.save(&file).map_err(|e| format!("{}: {e}", file.display()))?;
             Ok(json!({ "ok": true, "file": file, "width": image.width(), "height": image.height(), "scale": scale }))
@@ -454,4 +460,40 @@ fn state(app: &crate::app::App) -> Value {
         "popup": menu_json(&POPUP.lock()),
         "settings": app.settings,
     })
+}
+
+/// The shown window as X has it, read back from the server: GPUI's Linux backend has no
+/// `render_to_image`. X11 only (a Wayland session runs the app through XWayland when `DISPLAY` is
+/// set, which `xtask drive` does not change).
+#[cfg(target_os = "linux")]
+fn x11_shot(window: &Window) -> Result<image::RgbaImage, String> {
+    use raw_window_handle::{HasWindowHandle, RawWindowHandle};
+    use x11rb::connection::Connection;
+    use x11rb::protocol::xproto::{ConnectionExt, ImageFormat};
+
+    let handle = HasWindowHandle::window_handle(window).map_err(|e| e.to_string())?;
+    let id = match handle.as_raw() {
+        RawWindowHandle::Xcb(h) => h.window.get(),
+        RawWindowHandle::Xlib(h) => h.window as u32,
+        _ => return Err("shot needs an X11 window (run with DISPLAY set, e.g. on Xvfb)".into()),
+    };
+    let (conn, _) = x11rb::connect(None).map_err(|e| format!("X11: {e}"))?;
+    let geometry = conn.get_geometry(id).map_err(|e| e.to_string())?.reply().map_err(|e| e.to_string())?;
+    let (w, h) = (geometry.width, geometry.height);
+    let reply = conn
+        .get_image(ImageFormat::Z_PIXMAP, id, 0, 0, w, h, !0)
+        .map_err(|e| e.to_string())?
+        .reply()
+        .map_err(|e| format!("X11 GetImage: {e}"))?;
+    let setup = conn.setup();
+    let bpp = setup.pixmap_formats.iter().find(|f| f.depth == reply.depth).map_or(32, |f| f.bits_per_pixel);
+    if bpp != 32 {
+        return Err(format!("X11 GetImage: {bpp} bits a pixel, expected 32"));
+    }
+    // Little-endian 24/32-bit TrueColor, as Xvfb and every desktop serve it: B, G, R, pad.
+    let mut rgba = Vec::with_capacity(w as usize * h as usize * 4);
+    for px in reply.data.chunks_exact(4) {
+        rgba.extend_from_slice(&[px[2], px[1], px[0], 255]);
+    }
+    image::RgbaImage::from_raw(w.into(), h.into(), rgba).ok_or_else(|| "X11 GetImage: short image".into())
 }

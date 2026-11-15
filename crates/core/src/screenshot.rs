@@ -59,6 +59,22 @@ pub trait ScreenCapturer: Send + Sync {
 #[cfg(any(windows, target_os = "macos"))]
 pub struct XcapCapturer;
 
+/// Where there is no screen capture yet (Linux, which builds so the app can be tested on CI and
+/// in the cloud): a screenshot fails with a message, and there are no windows to pick.
+#[cfg(not(any(windows, target_os = "macos")))]
+pub struct NoCapturer;
+
+#[cfg(not(any(windows, target_os = "macos")))]
+impl ScreenCapturer for NoCapturer {
+    fn capture(&self, _target: CaptureTarget) -> anyhow::Result<CaptureResult> {
+        anyhow::bail!("screenshots are not available on this OS yet")
+    }
+
+    fn windows(&self) -> anyhow::Result<Vec<WindowInfo>> {
+        Ok(Vec::new())
+    }
+}
+
 #[cfg(any(windows, target_os = "macos"))]
 impl XcapCapturer {
     fn cursor_monitor() -> anyhow::Result<Captured> {

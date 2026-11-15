@@ -26,6 +26,9 @@ WASAPI capture.
 
 Windows 10/11 x64 with the MSVC build tools and Rust (the version in `.github/workflows/ci.yml`).
 GPU builds also need the Vulkan SDK and LLVM (see `README.en.md` → For developers).
+On Linux (a cloud session or CI; a test platform, not a release) source `scripts/linux-env.sh`
+first; it lists the packages. Recording there runs only from a driven run's sound files, and a
+driven run needs a display: `Xvfb :99 & export DISPLAY=:99` (`docs/DECISIONS.md` → Linux).
 
 ```sh
 cargo run -p chidori                          # CPU build

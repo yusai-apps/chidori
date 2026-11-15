@@ -120,28 +120,12 @@ pub fn watch_app_levels(app: &AppHandle, root_pids: Vec<u32>) {
 }
 
 pub fn start_recording(app: &AppHandle, source: SourceConfig, title: Option<String>) -> AppResult<StartResponse> {
-    #[cfg(any(windows, target_os = "macos"))]
-    {
-        recorder::start(app, app.state(), source, title)
-    }
-    #[cfg(not(any(windows, target_os = "macos")))]
-    {
-        let _ = (app, source, title);
-        Err(AppError::internal("recording needs Windows or macOS"))
-    }
+    recorder::start(app, app.state(), source, title)
 }
 
 /// Records more onto a saved session (FR-08).
 pub fn continue_recording(app: &AppHandle, session_id: String, source: SourceConfig) -> AppResult<StartResponse> {
-    #[cfg(any(windows, target_os = "macos"))]
-    {
-        recorder::continue_session(app, app.state(), source, session_id)
-    }
-    #[cfg(not(any(windows, target_os = "macos")))]
-    {
-        let _ = (app, session_id, source);
-        Err(AppError::internal("recording needs Windows or macOS"))
-    }
+    recorder::continue_session(app, app.state(), source, session_id)
 }
 
 /// What the file dialog offers to transcribe (FR-18): what Windows plays, video included. Any other
@@ -169,40 +153,16 @@ pub fn pause_recording(app: &AppHandle) -> AppResult<()> {
 }
 
 pub fn resume_recording(app: &AppHandle) -> AppResult<()> {
-    #[cfg(any(windows, target_os = "macos"))]
-    {
-        recorder::resume(app, app.state())
-    }
-    #[cfg(not(any(windows, target_os = "macos")))]
-    {
-        let _ = app;
-        Ok(())
-    }
+    recorder::resume(app, app.state())
 }
 
 pub fn switch_to_system(app: &AppHandle) -> AppResult<()> {
-    #[cfg(any(windows, target_os = "macos"))]
-    {
-        recorder::switch_to_system(app, app.state())
-    }
-    #[cfg(not(any(windows, target_os = "macos")))]
-    {
-        let _ = app;
-        Ok(())
-    }
+    recorder::switch_to_system(app, app.state())
 }
 
 /// Switches what is recorded without stopping (FR-17).
 pub fn switch_source(app: &AppHandle, source: SourceConfig) -> AppResult<()> {
-    #[cfg(any(windows, target_os = "macos"))]
-    {
-        recorder::switch_source(app, app.state(), source)
-    }
-    #[cfg(not(any(windows, target_os = "macos")))]
-    {
-        let _ = (app, source);
-        Ok(())
-    }
+    recorder::switch_source(app, app.state(), source)
 }
 
 pub fn take_screenshot(app: &AppHandle) -> AppResult<ShotResponse> {
@@ -534,15 +494,7 @@ pub fn retry_gpu(app: &AppHandle) {
 }
 
 pub fn mic_test(app: &AppHandle, seconds: u64) -> AppResult<crate::mic_test::MicTestResult> {
-    #[cfg(any(windows, target_os = "macos"))]
-    {
-        crate::mic_test::run(app, app.state(), seconds.clamp(3, 20))
-    }
-    #[cfg(not(any(windows, target_os = "macos")))]
-    {
-        let _ = (app, seconds);
-        Err(AppError::internal("recording needs Windows or macOS"))
-    }
+    crate::mic_test::run(app, app.state(), seconds.clamp(3, 20))
 }
 
 pub fn complete_setup(app: &AppHandle) {

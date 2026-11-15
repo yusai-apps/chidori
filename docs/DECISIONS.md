@@ -681,6 +681,28 @@ found a reason to deviate.
   repo is public, so its minutes are free. `release.yml` builds the Windows installer and the
   `.dmg` on their own runners and drafts one release with both.
 
+## Linux (a test platform, not a release)
+
+- **Why.** Cloud sessions and CI runners are Linux. Building there lets an agent build, test and
+  drive the real app (`docs/DRIVE.md`) without a Windows or Mac machine; Linux users are not a
+  target, and nothing is packaged or released for it.
+- **What runs.** The whole core and the GPUI app (GPUI's own X11/Wayland backend, drawn through
+  wgpu; on a headless machine Xvfb and Mesa's software Vulkan stand in for a screen and a GPU).
+  The recorder is built on every OS: a recording runs from a driven run's sound files
+  (`AppState::stand_in`), so record → Whisper (CPU) → transcript → export is testable end to end.
+- **What does not, yet.** No device capture: `audio::open_source` returns a source whose start
+  fails with a message, and the mic list is empty. No screenshots (`screenshot::NoCapturer`),
+  no app list, no notifications, no popup menus (the drawn ones still work), no hotkeys. Real
+  capture would be `cpal` (already the Mac path), whose ALSA, PulseAudio and PipeWire hosts give
+  the mic and, through a monitor source, the whole system's sound; one app's sound would need
+  PipeWire. None of it is planned.
+- **Driving.** GPUI has no `render_to_image` on Linux, so a driven window always shows there and
+  `shot` reads it back from the X server (`x11rb`, already in the lockfile through GPUI). Run it
+  under `xvfb-run` or with `DISPLAY` on an Xvfb.
+- **Builds.** `. scripts/linux-env.sh` first (clang flags over `.cargo/config.toml`'s MSVC ones,
+  as on macOS); it lists the packages. `ci.yml`'s `linux` job runs clippy with `drive` and the
+  tests, CPU only, with no debug info (the GPUI tree's passes the runner's disk).
+
 ## Test assets
 
 - **Benchmark clip** `crates/app/resources/bench_ja.wav`: 10 s (4.0–14.0 s) of chapter 4 of the

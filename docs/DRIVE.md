@@ -20,7 +20,8 @@ cargo xtask drive stop
 - **The real app.** The same `main`, core, threads and GPUI window as any run. Input goes into
   GPUI as its own mouse and key events (`Window::dispatch_event`), so a click passes through the
   same hit testing and handlers as a hand's. The OS mouse and keyboard are never touched.
-- **Out of sight.** The window is created hidden and never takes the focus. A screenshot is the
+- **Out of sight.** The window is created hidden and never takes the focus (on Linux it shows,
+  for `shot` to read it back from X; run Linux drives on Xvfb, see `docs/DECISIONS.md` → Linux). A screenshot is the
   window drawing itself to an image (GPUI's `render_to_image`), not a capture of the screen, so
   it works hidden, behind a game, or with 画面共有・スクショに映さない on. The system asks a
   hidden window for no frames, so the run draws its own, 60 a second, and motion plays as it
