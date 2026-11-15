@@ -1165,6 +1165,7 @@ dependencies = [
  "unicode-normalization",
  "windows 0.62.2",
  "winresource",
+ "x11rb",
 ]
 
 [[package]]

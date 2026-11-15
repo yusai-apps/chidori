@@ -113,6 +113,14 @@ The Mac port ([issue 6](https://github.com/yusai-apps/chidori/issues/6)) records
 - `cargo run -p chidori --features gpu-metal` is the Metal build. The first recording asks for the microphone, and システム全体 asks for system audio recording, both for the app that launched it (your terminal, for a dev build).
 - `cargo xtask dist` (after `cargo install cargo-packager --locked`) builds `Chidori.app` and the `.dmg` in `target/dist`, as the release does. Open the `.app` from there to get the permission prompts in Chidori's own name.
 
+### Prerequisites (Linux, for tests only)
+
+Linux is not a release platform: it builds so CI and cloud sessions can test and drive the app ([docs/DECISIONS.md](docs/DECISIONS.md) → Linux). Recording works only from sound files in a driven run; there is no device capture or screenshot.
+
+- Rust (the same toolchain version), CMake, clang, and the packages listed in `scripts/linux-env.sh` (Ubuntu 24.04 names)
+- Before any cargo command: `. scripts/linux-env.sh`
+- Without a screen: `xvfb` and `mesa-vulkan-drivers`, then `Xvfb :99 & export DISPLAY=:99` before `cargo xtask drive start`
+
 ### Run and test
 
 ```sh

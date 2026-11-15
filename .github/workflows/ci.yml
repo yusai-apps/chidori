@@ -66,3 +66,32 @@ jobs:
         run: cargo clippy --workspace --all-targets --features chidori/gpu-metal -- -D warnings
       - name: cargo test
         run: cargo test --workspace
+
+  linux:
+    # Not a release platform: Linux builds so that the app can be tested, and driven, on CI and in
+    # cloud sessions (docs/DECISIONS.md → Linux). Recording runs from sound files there.
+    runs-on: ubuntu-24.04
+    env:
+      CMAKE_C_FLAGS_RELEASE: "-O3 -DNDEBUG"
+      CMAKE_CXX_FLAGS_RELEASE: "-O3 -DNDEBUG"
+      CMAKE_C_FLAGS_RELWITHDEBINFO: "-O2 -g -DNDEBUG"
+      CMAKE_CXX_FLAGS_RELWITHDEBINFO: "-O2 -g -DNDEBUG"
+      # Debug info for the whole GPUI tree passes the runner's disk.
+      CARGO_PROFILE_DEV_DEBUG: "0"
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - name: System libraries (scripts/linux-env.sh lists them)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends cmake clang pkg-config libasound2-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libx11-xcb-dev libfontconfig-dev \
+            libgtk-3-dev libxdo-dev libayatana-appindicator3-dev
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.98.1
+          components: clippy
+      - uses: Swatinem/rust-cache@v2.9.2
+      - name: cargo clippy (with the drive harness, which Linux exists for)
+        run: cargo clippy --workspace --all-targets --features chidori/drive -- -D warnings
+      - name: cargo test
+        run: cargo test --workspace

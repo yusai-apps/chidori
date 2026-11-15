@@ -642,7 +642,8 @@ through Media Foundation), signing and notarization.
 **Later:** sleep and wake during a recording (restart sources, add a marker; not handled yet),
 region screenshots (FR-34), optional audio saving for re-transcription with a larger model
 (FR-54), diarization beyond 自分/相手, summaries,
-other engines behind an engine trait, a caption overlay, export to Notion or Google Docs, Linux.
+other engines behind an engine trait, a caption overlay, export to Notion or Google Docs, Linux as a
+release (it builds today only as a test platform: `docs/DECISIONS.md` → Linux).
 
 ## 20. References and prior art
 

@@ -93,11 +93,6 @@ pub fn app_loopback_supported() -> bool {
     cfg!(windows) && os_build() >= APP_LOOPBACK_MIN_BUILD
 }
 
-/// Recording works on this OS at all.
-pub const fn capture_supported() -> bool {
-    cfg!(any(windows, target_os = "macos"))
-}
-
 /// Raises the calling thread to MMCSS "Pro Audio". Keep the guard alive for the thread.
 #[cfg(windows)]
 pub struct MmcssGuard(windows::Win32::Foundation::HANDLE);
@@ -144,6 +139,18 @@ pub fn cursor_pos() -> Option<(i32, i32)> {
     Some((x.round() as i32, y.round() as i32))
 }
 
+/// No cursor position on other OSes yet: screenshots are Windows and macOS only.
+#[cfg(not(any(windows, target_os = "macos")))]
+pub fn cursor_pos() -> Option<(i32, i32)> {
+    None
+}
+
+/// True while a process with this PID exists and has not exited.
+#[cfg(not(any(windows, target_os = "macos")))]
+pub fn process_alive(pid: u32) -> bool {
+    std::path::Path::new(&format!("/proc/{pid}")).exists()
+}
+
 /// True while a process with this PID exists and has not exited.
 #[cfg(target_os = "macos")]
 pub fn process_alive(pid: u32) -> bool {
@@ -185,7 +192,6 @@ pub fn play_wav(wav: &'static [u8]) {
 pub fn play_wav(_wav: &'static [u8]) {}
 
 /// Total physical memory in bytes.
-#[cfg(any(windows, target_os = "macos"))]
 pub fn total_memory() -> u64 {
     let mut sys = sysinfo::System::new();
     sys.refresh_memory();
@@ -301,7 +307,6 @@ mod tests {
         assert!(os_build() > 10_000);
     }
 
-    #[cfg(any(windows, target_os = "macos"))]
     #[test]
     fn own_process_is_alive() {
         assert!(process_alive(std::process::id()));

@@ -3,7 +3,9 @@
 //! long one, and a native menu may reach past the window. A pick arrives through the bridge as
 //! `UiEvent::Menu(id)`.
 
-use tray_icon::menu::{CheckMenuItem, ContextMenu, IsMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
+#[cfg(any(windows, target_os = "macos"))]
+use tray_icon::menu::ContextMenu;
+use tray_icon::menu::{CheckMenuItem, IsMenuItem, Menu, MenuEvent, MenuItem, PredefinedMenuItem, Submenu};
 
 use crate::bridge::{self, UiEvent};
 

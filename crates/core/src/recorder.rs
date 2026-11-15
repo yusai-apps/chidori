@@ -32,7 +32,6 @@ use crate::session::{paths, recovery};
 use crate::settings::{LastApp, Locale, ScreenshotTarget, Settings, SourceMode};
 use crate::state::AppState;
 
-#[cfg(any(windows, target_os = "macos"))]
 use crate::audio::source::CaptureTarget;
 
 pub const ME: &str = "自分";
@@ -75,7 +74,6 @@ pub struct ShotResponse {
     pub t_ms: u64,
 }
 
-#[cfg(any(windows, target_os = "macos"))]
 #[derive(Clone)]
 struct PlannedSource {
     id: SourceId,
@@ -97,7 +95,6 @@ pub struct Active {
     /// What is being recorded, as chosen; switching the source changes it (FR-17).
     config: SourceConfig,
     pub sources: RecordedSources,
-    #[cfg(any(windows, target_os = "macos"))]
     plan: Vec<PlannedSource>,
     running: Vec<RunningSource>,
     status_rx: Receiver<SourceStatus>,
@@ -240,7 +237,6 @@ fn recorded_sources(config: &SourceConfig, app_name: &str) -> RecordedSources {
 }
 
 /// What a source choice captures, and how the session names it.
-#[cfg(any(windows, target_os = "macos"))]
 struct Planned {
     plan: Vec<PlannedSource>,
     infos: Vec<SourceInfo>,
@@ -248,7 +244,6 @@ struct Planned {
     app_root_pid: Option<u32>,
 }
 
-#[cfg(any(windows, target_os = "macos"))]
 fn plan_sources(config: &SourceConfig, app_name: &str) -> Planned {
     let mut plan: Vec<PlannedSource> = Vec::new();
     let mut infos: Vec<SourceInfo> = Vec::new();
@@ -435,21 +430,18 @@ fn claim_start(st: &AppState) -> AppResult<parking_lot::MutexGuard<'_, ()>> {
 }
 
 /// A new session, or a saved one that a recording continues (FR-08).
-#[cfg(any(windows, target_os = "macos"))]
 enum Begin {
     New { title: Option<String> },
     Continue { session_id: String },
 }
 
 /// Starts a recording. Capture runs within a second; the model may still be loading.
-#[cfg(any(windows, target_os = "macos"))]
 pub fn start(app: &AppHandle, st: &AppState, config: SourceConfig, title: Option<String>) -> AppResult<StartResponse> {
     begin(app, st, config, Begin::New { title })
 }
 
 /// Records more onto a saved session (FR-08): its transcript, screenshots and sound carry on
 /// after its end, and clock times follow the new start.
-#[cfg(any(windows, target_os = "macos"))]
 pub fn continue_session(
     app: &AppHandle,
     st: &AppState,
@@ -459,7 +451,6 @@ pub fn continue_session(
     begin(app, st, config, Begin::Continue { session_id })
 }
 
-#[cfg(any(windows, target_os = "macos"))]
 fn begin(app: &AppHandle, st: &AppState, config: SourceConfig, how: Begin) -> AppResult<StartResponse> {
     let _starting = claim_start(st)?;
     let settings = st.settings.read().clone();
@@ -577,7 +568,6 @@ fn begin(app: &AppHandle, st: &AppState, config: SourceConfig, how: Begin) -> Ap
     Ok(response)
 }
 
-#[cfg(any(windows, target_os = "macos"))]
 fn start_sources(active: &mut Active, st: &AppState, start_ms: u64) -> Result<(), (SourceId, anyhow::Error)> {
     let sink: Arc<dyn JobSink> = st.worker.clone();
     for p in active.plan.clone() {
@@ -964,7 +954,6 @@ pub fn pause(app: &AppHandle, st: &AppState) -> AppResult<()> {
     Ok(())
 }
 
-#[cfg(any(windows, target_os = "macos"))]
 pub fn resume(app: &AppHandle, st: &AppState) -> AppResult<()> {
     let mut rec = st.recorder.lock();
     let Phase::Recording(active) = &mut *rec else { return Err(AppError::internal("not recording")) };
@@ -987,7 +976,6 @@ pub fn resume(app: &AppHandle, st: &AppState) -> AppResult<()> {
 /// Switches what is recorded without stopping (FR-17): capture restarts on the new source at
 /// this moment, the session gains the new source's name, and the timeline gets a marker. While
 /// paused, the new source starts on resume. If it cannot start, the old one carries on.
-#[cfg(any(windows, target_os = "macos"))]
 pub fn switch_source(app: &AppHandle, st: &AppState, config: SourceConfig) -> AppResult<()> {
     check_source(&config)?;
     let locale = st.settings.read().locale;
@@ -1034,7 +1022,6 @@ pub fn switch_source(app: &AppHandle, st: &AppState, config: SourceConfig) -> Ap
 }
 
 /// 「システム全体に切り替える」 after the app-silence health check (section 7).
-#[cfg(any(windows, target_os = "macos"))]
 pub fn switch_to_system(app: &AppHandle, st: &AppState) -> AppResult<()> {
     let config = match &*st.recorder.lock() {
         Phase::Recording(a) if a.config.mode == SourceMode::App => {
@@ -1347,7 +1334,6 @@ pub fn spawn_ticker(app: AppHandle) {
 }
 
 /// Start with the last-used source (the Start/Stop hotkey while idle).
-#[cfg(any(windows, target_os = "macos"))]
 pub fn start_last_used(app: &AppHandle, st: &AppState) -> AppResult<StartResponse> {
     let s = st.settings.read().clone();
     let mut mode = s.source.mode;
@@ -1375,7 +1361,6 @@ pub fn start_last_used(app: &AppHandle, st: &AppState) -> AppResult<StartRespons
 }
 
 /// Start/Stop toggle shared by the button, hotkey and tray.
-#[cfg(any(windows, target_os = "macos"))]
 pub fn toggle(app: &AppHandle, st: &AppState) {
     let phase = st.recorder.lock().ui_state();
     let result = match phase {

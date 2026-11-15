@@ -40,6 +40,8 @@ pub struct AppState {
     persisting: Mutex<()>,
     #[cfg(any(windows, target_os = "macos"))]
     pub capturer: crate::screenshot::XcapCapturer,
+    #[cfg(not(any(windows, target_os = "macos")))]
+    pub capturer: crate::screenshot::NoCapturer,
     /// How loud each app in the source picker is.
     #[cfg(windows)]
     pub meters: crate::audio::win::meters::AppMeters,
@@ -79,6 +81,8 @@ impl AppState {
             persisting: Mutex::new(()),
             #[cfg(any(windows, target_os = "macos"))]
             capturer: crate::screenshot::XcapCapturer,
+            #[cfg(not(any(windows, target_os = "macos")))]
+            capturer: crate::screenshot::NoCapturer,
             #[cfg(windows)]
             meters: Default::default(),
         }

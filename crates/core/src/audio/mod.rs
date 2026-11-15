@@ -65,7 +65,6 @@ impl AudioSource for Silence {
 }
 
 /// This OS's capture stream for a target (section 6).
-#[cfg(any(windows, target_os = "macos"))]
 pub fn open_source(id: SourceId, target: CaptureTarget, status: Sender<SourceStatus>) -> Box<dyn AudioSource> {
     #[cfg(windows)]
     {
@@ -75,6 +74,31 @@ pub fn open_source(id: SourceId, target: CaptureTarget, status: Sender<SourceSta
     {
         Box::new(mac::capture::CoreAudioSource::new(id, target, status))
     }
+    #[cfg(not(any(windows, target_os = "macos")))]
+    {
+        let _ = (target, status);
+        Box::new(NoDevice { id })
+    }
+}
+
+/// Where there is no device capture yet (Linux): starting fails with a message. A recording
+/// still runs from a `StandIn`'s sound files, which is how CI and cloud test runs record.
+#[cfg(not(any(windows, target_os = "macos")))]
+struct NoDevice {
+    id: SourceId,
+}
+
+#[cfg(not(any(windows, target_os = "macos")))]
+impl AudioSource for NoDevice {
+    fn id(&self) -> SourceId {
+        self.id
+    }
+
+    fn start(&mut self, _tx: Sender<RawChunk>) -> anyhow::Result<()> {
+        Err(source::CaptureError::Other("recording from a device is not available on this OS yet".into()).into())
+    }
+
+    fn stop(&mut self) {}
 }
 
 /// The mics to choose from, the default first (FR-13).
