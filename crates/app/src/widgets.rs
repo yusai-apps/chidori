@@ -462,17 +462,16 @@ pub fn chip(label: impl Into<String>, dot: Option<Color>, chosen: bool, on: Opti
     let text = plain(label.clone(), tokens::LABEL).overflow_hidden().text_ellipsis();
     content = content.child(if chosen { text.bold() } else { text });
     let ink = p().ink;
-    let mut b = clickable(on, ("chip", &label))
+    let b = clickable(on, ("chip", &label))
         .flex()
         .flex_none()
         .items_center()
         .h(g(4.0))
         .px(g(2.0))
         .text_color(if chosen { p().ink } else { p().muted })
+        // On the chosen chip too (it is ink already): see `screens::titlebar::tabs`.
+        .hover(move |s| s.text_color(ink))
         .child(content);
-    if !chosen {
-        b = b.hover(move |s| s.text_color(ink));
-    }
     b.into_any_element()
 }
 

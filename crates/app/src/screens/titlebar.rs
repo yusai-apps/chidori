@@ -161,16 +161,18 @@ fn tabs(app: &App, fit: Fit) -> El {
         let text = plain(label, tokens::LABEL);
         content = content.child(if here { text.bold() } else { text });
         let ink = p().ink;
-        let mut b = clickable(Some(Message::Go(view)), "place")
+        // Every tab keeps the hover, the current one too (where it changes nothing): GPUI only
+        // tracks the pointer for an element with a hover style, so a tab left without one keeps
+        // the "hovered" it had when it was picked and stays white after the next pick until the
+        // pointer moves.
+        let b = clickable(Some(Message::Go(view)), "place")
             .flex()
             .items_center()
             .h(g(4.0))
             .px(px(pad))
             .text_color(if here { p().ink } else { p().muted })
+            .hover(move |s| s.text_color(ink))
             .child(content);
-        if !here {
-            b = b.hover(move |s| s.text_color(ink));
-        }
         let tip = if place == Place::Main && busy && !here { t("backToLive") } else { String::new() };
         items.push(with_tip(b, tip).into_any_element());
     }
