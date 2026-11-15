@@ -7,7 +7,8 @@
 # Packages (Ubuntu 24.04): build-essential cmake clang pkg-config libasound2-dev
 # libxkbcommon-dev libxkbcommon-x11-dev libwayland-dev libx11-xcb-dev libfontconfig-dev
 # libgtk-3-dev libxdo-dev libayatana-appindicator3-dev; to drive the app without a
-# screen, also xvfb and mesa-vulkan-drivers (software Vulkan).
+# screen, also xvfb and mesa-vulkan-drivers (software Vulkan); for an export's file dialog
+# there (rfd falls back to it without a desktop portal), zenity, answered with xdotool.
 export CMAKE_C_FLAGS_RELEASE="-O3 -DNDEBUG"
 export CMAKE_CXX_FLAGS_RELEASE="-O3 -DNDEBUG"
 export CMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -g -DNDEBUG"

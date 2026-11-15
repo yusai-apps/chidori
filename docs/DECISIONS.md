@@ -699,6 +699,15 @@ found a reason to deviate.
 - **Driving.** GPUI has no `render_to_image` on Linux, so a driven window always shows there and
   `shot` reads it back from the X server (`x11rb`, already in the lockfile through GPUI). Run it
   under `xvfb-run` or with `DISPLAY` on an Xvfb.
+- **Exports when driven.** 書き出し asks for a path in a real file dialog. With no desktop portal,
+  `rfd` falls back to `zenity`, which shows on the Xvfb: install it, then answer the dialog with
+  `xdotool type <path>` and `xdotool key Return`. Without zenity the dialog fails as cancelled and
+  nothing is written.
+- **Models for tests.** A driven profile and `tests/pipeline.rs` take the smallest catalog model
+  there is, `base-q5` (60 MB, `ggml-base-q5_1.bin` in `~/.local/share/dev.yusai.chidori/models`).
+  It proves the chain (record, transcribe, label, export) but not accuracy: on CPU its 自分 CER in
+  `two_channel_labels_and_echo_guard` is about 37 %, over that test's 35 % floor. `tiny` is not in
+  the catalog and fails the streaming-vs-one-pass margin too, so it is no smaller option.
 - **Builds.** `. scripts/linux-env.sh` first (clang flags over `.cargo/config.toml`'s MSVC ones,
   as on macOS); it lists the packages. `ci.yml`'s `linux` job runs clippy with `drive` and the
   tests, CPU only, with no debug info (the GPUI tree's passes the runner's disk).
